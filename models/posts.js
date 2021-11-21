@@ -7,11 +7,15 @@ const Posts = db.define("posts", {
         allowNull: false
     },
     entry: {
-        type: DataTypes.STRING,
+        type: DataTypes.TEXT,
         allowNull: false
     },
     image: {
         type: DataTypes.STRING,
+    },
+    owner: {
+        type: DataTypes.STRING,
+        allowNull: false
     }
 })
 module.exports = Posts;

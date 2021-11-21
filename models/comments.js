@@ -5,6 +5,10 @@ const Comments = db.define("comments", {
     comment: {
         type: DataTypes.STRING,
         allowNull: false
+    },
+    owner: {
+        type: DataTypes.STRING,
+        allowNull: false
     }
 })
 

@@ -14,6 +14,7 @@ router.post("/create", validateSession, async (req, res) => {
         comment: comment,
         userId: req.user.id,
         postId: postId,
+        owner: req.user.username
       })
       .then((comment) => {
         res.status(200).json({
@@ -41,24 +42,47 @@ router.get("/get", async (req, res) => {
   }
 });
 
-// Edit your comments
-router.put("/edit/:entryId", validateSession, async (req, res) => {
-  const { comment } = req.body;
-  const commentId = req.params.entryId;
-  const query = {
-    where: {
-      id: commentId,
-    },
+// Get comments by Post
+
+router.get("/:postId", async (req, res) => {
+  const {postId} = req.params;
+  try {
+    const results = await commentsModel.findAll({
+      where: {
+        postId: postId
+      }
+    });
+    res.status(200).json(results);
+  } catch (err) {
+    res.status(500).json({
+      error: err
+    });
   };
+});
+
+// Edit your comments
+router.put("/edit/:id", validateSession, async (req, res) => {
+  const { comment } = req.body;
+  if (req.user.admin === true) {
+    query = { where: { id: req.params.id } };
+  } else {
+    query = { where: { id: req.params.id, userId: req.user.id } };
+  }
   const updatedComment = {
     comment: comment,
   };
   try {
     const update = await commentsModel.update(updatedComment, query);
-    res.status(200).json({
-      message: "Comment successfully updated",
-      update,
-    });
+    if (update[0] !== 0) {
+      res.status(200).json({
+        message: "Comment edited",
+        update,
+      });
+    } else {
+      res.status(301).json({
+        message: "not authorized",
+      })
+    } 
   } catch (err) {
     res.status(500).json({
       error: err,
@@ -70,7 +94,7 @@ router.put("/edit/:entryId", validateSession, async (req, res) => {
 router.delete("/delete/:id", validateSession, async (req, res) => {
   if (req.user.admin === true) {
     query = { where: { id: req.params.id } };
-  } else if (req.user.admin === false) {
+  } else {
     query = { where: { id: req.params.id, userId: req.user.id } };
   }
   try {
@@ -81,8 +105,8 @@ router.delete("/delete/:id", validateSession, async (req, res) => {
         deletedComment,
       });
     } else {
-      res.status(200).json({
-        message: "no entry found",
+      res.status(301).json({
+        message: "not authorized",
       });
     }
   } catch (err) {

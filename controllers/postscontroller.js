@@ -14,7 +14,8 @@ router.post("/create", validateSession, async (req, res) => {
            destination,
            entry,
            image,
-           userId: req.user.id 
+           userId: req.user.id,
+           owner: req.user.username
         });
         res.status(200).json({
             message: "Post created!",
@@ -32,7 +33,7 @@ router.post("/create", validateSession, async (req, res) => {
 router.get("/", async (req,res) => {
     try {
         const allPosts = await postsModel.findAll();
-        res.status(200).json({allPosts});
+        res.status(200).json(allPosts);
     } catch (err) {
       res.status(500).json({
           message: `Server error ${err}`
@@ -52,7 +53,7 @@ router.get("/mine", validateSession, async (req,res) => {
 
     try {
         const myPosts = await postsModel.findAll(query);
-        res.status(200).json({myPosts});
+        res.status(200).json(myPosts);
     } catch (err) {
         res.status(500).json({
             message: `Server error ${err}`
@@ -106,7 +107,7 @@ router.delete("/delete/:id", validateSession, async (req,res) => {
                 id: postId
             },
         };
-    } else if (req.user.admin === false) {
+    } else {
         query = {
             where: {
                 id: postId,
